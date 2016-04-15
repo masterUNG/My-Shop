@@ -1,18 +1,21 @@
 package appewtc.masterung.myshop;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,7 +36,20 @@ public class MainActivity extends AppCompatActivity {
         //Request SQLite
         mySQLite = new MySQLite(this);
 
+        //Synchronize mySQL to SQLite
+        synAndDelete();
+
     }   // onCreate
+
+    private void synAndDelete() {
+        SQLiteDatabase sqLiteDatabase = openOrCreateDatabase(MyOpenHelper.database_name,
+                MODE_PRIVATE, null);
+        sqLiteDatabase.delete(MySQLite.user_table, null, null);
+
+        MySynJSON mySynJSON = new MySynJSON();
+        mySynJSON.execute();
+
+    }   // synAndDelete
 
     //Create Inner Class for Connected JSON
     public class MySynJSON extends AsyncTask<Void, Void, String> {
@@ -64,7 +80,18 @@ public class MainActivity extends AppCompatActivity {
                 JSONArray jsonArray = new JSONArray(s);
                 for (int i=0;i<jsonArray.length();i++) {
 
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    String strName = jsonObject.getString(MySQLite.column_Name);
+                    String strSurname = jsonObject.getString(MySQLite.column_Name);
+                    String strUser = jsonObject.getString(MySQLite.column_Name);
+                    String strPassword = jsonObject.getString(MySQLite.column_Name);
+                    String strAddress = jsonObject.getString(MySQLite.column_Name);
+                    String strPhone = jsonObject.getString(MySQLite.column_Name);
+                    mySQLite.addNewUser(strName, strSurname, strUser, strPassword,
+                            strAddress, strPhone);
                 }   //for
+                Toast.makeText(MainActivity.this, "Synchronize mySQL to SQLite Finish",
+                        Toast.LENGTH_SHORT).show();
 
             } catch (Exception e) {
                 Log.d("masterUNG", "onPost ==> " + e.toString());
@@ -74,9 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
     }   // MySynJSON Class
 
-    private void checkPassword(String strName, String strSurname, String strUser, String strPassword) {
-        
-    }
+
 
     public void clickSignInMain(View view) {
 
@@ -91,8 +116,7 @@ public class MainActivity extends AppCompatActivity {
                     "กรุณากรอกทุกช่อง คะ");
         } else {
             //No Space
-            MySynJSON mySynJSON = new MySynJSON();
-            mySynJSON.execute();
+
         }
 
     }   // clickSignIn
