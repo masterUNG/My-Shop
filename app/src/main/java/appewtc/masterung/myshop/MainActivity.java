@@ -1,6 +1,7 @@
 package appewtc.masterung.myshop;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -82,11 +83,11 @@ public class MainActivity extends AppCompatActivity {
 
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
                     String strName = jsonObject.getString(MySQLite.column_Name);
-                    String strSurname = jsonObject.getString(MySQLite.column_Name);
-                    String strUser = jsonObject.getString(MySQLite.column_Name);
-                    String strPassword = jsonObject.getString(MySQLite.column_Name);
-                    String strAddress = jsonObject.getString(MySQLite.column_Name);
-                    String strPhone = jsonObject.getString(MySQLite.column_Name);
+                    String strSurname = jsonObject.getString(MySQLite.column_Surname);
+                    String strUser = jsonObject.getString(MySQLite.column_User);
+                    String strPassword = jsonObject.getString(MySQLite.column_Password);
+                    String strAddress = jsonObject.getString(MySQLite.column_Address);
+                    String strPhone = jsonObject.getString(MySQLite.column_Phone);
                     mySQLite.addNewUser(strName, strSurname, strUser, strPassword,
                             strAddress, strPhone);
                 }   //for
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     public void clickSignInMain(View view) {
 
         userString = userEditText.getText().toString().trim();
-        passwordString = userEditText.getText().toString().trim();
+        passwordString = passwordEditText.getText().toString().trim();
 
         //Check Space
         if (userString.equals("") || passwordString.equals("")) {
@@ -116,10 +117,46 @@ public class MainActivity extends AppCompatActivity {
                     "กรุณากรอกทุกช่อง คะ");
         } else {
             //No Space
+            checkUser();
 
         }
 
     }   // clickSignIn
+
+    private void checkUser() {
+
+        try {
+
+            SQLiteDatabase sqLiteDatabase = openOrCreateDatabase(MyOpenHelper.database_name,
+                    MODE_PRIVATE, null);
+            Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM userTABLE WHERE User = " +
+                    "'" + userString + "'", null);
+            cursor.moveToFirst();
+            String[] resultStrings = new String[cursor.getColumnCount()];
+            for (int i=0;i<cursor.getColumnCount();i++) {
+                resultStrings[i] = cursor.getString(i);
+            }
+            cursor.close();
+
+            //Check Password
+            if (passwordString.equals(resultStrings[4])) {
+                Toast.makeText(this, "ยินดีต้อนรับ " + resultStrings[1], Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, ShowProduct.class);
+                intent.putExtra("Result", resultStrings);
+                startActivity(intent);
+                finish();
+            } else {
+                MyAlert myAlert = new MyAlert();
+                myAlert.myDialog(this, "Password ผิด", "พิมพ์ใหม่ Password ผิด ครับ");
+            }
+
+        } catch (Exception e) {
+            MyAlert myAlert = new MyAlert();
+            myAlert.myDialog(this, "ไม่มี user นี้", "ไม่มี " + userString + " ในฐานข้อมูล ของเรา");
+        }
+
+
+    }   // checkUser
 
     public void clickSignUpMain(View view) {
         startActivity(new Intent(MainActivity.this,
