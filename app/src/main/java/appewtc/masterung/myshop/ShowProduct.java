@@ -1,9 +1,12 @@
 package appewtc.masterung.myshop;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.squareup.okhttp.OkHttpClient;
@@ -62,7 +65,7 @@ public class ShowProduct extends AppCompatActivity {
 
                 String[] iconStrings = new String[jsonArray.length()];
                 String[] titleStrings = new String[jsonArray.length()];
-                String[] eBookStrings = new String[jsonArray.length()];
+                final String[] eBookStrings = new String[jsonArray.length()];
 
                 for (int i=0;i<jsonArray.length();i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -74,6 +77,17 @@ public class ShowProduct extends AppCompatActivity {
                 ProductAdapter productAdapter = new ProductAdapter(ShowProduct.this,
                         iconStrings, titleStrings);
                 listView.setAdapter(productAdapter);
+
+                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                        Intent intent = new Intent(ShowProduct.this, ShowPdf.class);
+                        intent.putExtra("pdf", eBookStrings[i]);
+                        startActivity(intent);
+
+                    }   // onItemClick
+                });
 
             } catch (Exception e) {
                 Log.d("masterUNG2", "onPost ==> " + e.toString());
